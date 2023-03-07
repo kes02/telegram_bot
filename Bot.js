@@ -24,7 +24,7 @@ getHtml()
         const $ = cheerio.load(html.data);
         const $bodyList = $("tbody tr"); //tbody -> tr -> td.b-td-left
         // if not tbody -> tr.b-top-box
-        const pattern = /[\t\r\n\v\f]+/g;
+        const pattern = /[\t\r\n\v\f]{3,}|\s{3,}/gi; //g = all i = 전체문항
         const back_pattern = /[\s\uFEFF\xA0]+$/gi;
         $bodyList.each(function(i, elem) { //동기
             ulList[i] = {
@@ -35,13 +35,27 @@ getHtml()
                 writer: $(this).find('span.b-writer').text().replace(pattern, ""), //작성팀
                 date: $(this).find('span.b-date').text().replace(pattern, "") //날짜
             };
-            const chtext = JSON.stringify(ulList[i]).replace(/[\"\\{\\}]/gi, "").replace(/,/gi, "\n").replace(/[|]/gi, ',');  //대대괄호, 따음표 제거
-            setTimeout(() => {
-                bot.sendMessage(chatId, chtext);
-            }, i*1000); // Delay each message by 1 second
-
+            //bot이 /공지사항이라는 명령어를 입력 받았을 때, 해당 메시지를 입력 받았을때 출력
+            bot.onText(/\/전체공지/, (msg) => {
+                const chtext = JSON.stringify(ulList[i]).replace(/[\"\\{\\}]/gi, "").replace(/,/gi, "\n").replace(/[|]/gi, ',');  //대대괄호, 따음표 제거
+                if(infotext.includes('공지') == false){ //fix된 공지가 아닌 것만 전송 받음
+                    setTimeout(() => {
+                        bot.sendMessage(chatId, infotext);
+                    }, i*1000); // Delay each message by 1 second
+                }
+            });
+            //bot이 /공지라는 명령어를 입력 받았을 때, 해당 메시지를 입력 받았을때 출력
+            bot.onText(/\/공지/, (msg) => {
+                const infotext = JSON.stringify(ulList[i]).replace(/[\"\\{\\}]/gi, "").replace(/,/gi, "\n").replace(/[|]/gi, ',');  //대대괄호, 따음표 제거
+                if(infotext.includes('공지')){
+                    setTimeout(() => {
+                        bot.sendMessage(chatId, infotext);
+                    }, i*1000); // Delay each message by 1 second
+                }
+            });
         });
           const data = ulList.filter(n => n.title);
           return data;
         })
         .then(res => log(res));
+
