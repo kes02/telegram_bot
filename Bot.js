@@ -2,7 +2,14 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const cron = require('node-cron');
 const log = console.log;
+
+var task = cron.schedule('* 18 * * *', function () { //18시간마다 스케쥴
+    console.log('매 분 마다 작업 실행');
+}, {
+    scheduled: false
+});
 
 const getHtml = async () => {
     try {
